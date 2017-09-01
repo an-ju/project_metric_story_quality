@@ -37,6 +37,14 @@ class ProjectMetricStoryQuality
     %I[tracker_project tracker_token]
   end
 
+  def get_params(metric_sample)
+    {
+      title: 'story_quality',
+      metric_name: 'story_quality',
+      metric_sample_id: metric_sample.id
+    }
+  end
+
   private
 
   def stories
