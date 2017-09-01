@@ -39,7 +39,7 @@ class ProjectMetricStoryQuality
     %I[tracker_project tracker_token]
   end
 
-  def get_params(metric_sample)
+  def self.get_params(metric_sample)
     {
       title: 'story_quality',
       metric_name: 'story_quality',
