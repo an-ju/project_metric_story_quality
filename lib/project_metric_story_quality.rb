@@ -3,6 +3,8 @@ require 'faraday'
 require 'json'
 
 class ProjectMetricStoryQuality
+  attr_accessor :raw_data
+
   def initialize(credentials, raw_data = nil)
     @project = credentials[:tracker_project]
     @conn = Faraday.new(url: 'https://www.pivotaltracker.com/services/v5')
