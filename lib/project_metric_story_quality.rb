@@ -1,6 +1,7 @@
 require "project_metric_story_quality/version"
 require 'faraday'
 require 'json'
+require 'digest'
 
 class ProjectMetricStoryQuality
   attr_accessor :raw_data
@@ -39,11 +40,26 @@ class ProjectMetricStoryQuality
     %I[tracker_project tracker_token]
   end
 
-  def self.get_params(metric_sample)
+  def get_params(metric_sample, latest_params)
+    @param_state = 1
+    existing_params = latest_params.nil? ? {} : JSON.parse(latest_params.parameters)
+    new_params = @raw_data.inject(Hash.new) do |new_params, story|
+      sid = story['id']
+      sdigest = digest_for story
+      if existing_params.key?(sid)
+        @param_state = 0 if existing_params[sid]['state'].eql? 0
+        new_params[sid] = existing_params[sid]['digest'].eql?(sdigest) ? existing_params[sid] : create_item_for(story)
+      else
+        new_params[sid] = create_item_for(story)
+      end
+      new_params
+    end
     {
       title: 'story_quality',
       metric_name: 'story_quality',
-      metric_sample_id: metric_sample.id
+      metric_sample_id: metric_sample.id,
+      parameters: new_params.to_json,
+      state: @param_state
     }
   end
 
@@ -54,4 +70,23 @@ class ProjectMetricStoryQuality
         @conn.get("projects/#{@project}/stories").body
     )
   end
+
+  def digest_for(story)
+    msg_string = {
+      title: story['name'],
+      description: story.key?('description') ? story['description'] : ''
+    }.to_json
+    Digest::MD5.hexdigest msg_string
+  end
+
+  def create_item_for(story)
+    @param_state = 0
+    {
+      digest: digest_for(story),
+      state: 0,
+      complexity: nil,
+      smart: nil
+    }
+  end
+
 end
