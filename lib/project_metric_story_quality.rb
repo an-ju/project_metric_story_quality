@@ -44,7 +44,7 @@ class ProjectMetricStoryQuality
     @param_state = 1
     existing_params = latest_params.nil? ? {} : JSON.parse(latest_params.parameters)
     new_params = @raw_data.inject(Hash.new) do |new_params, story|
-      sid = story['id']
+      sid = story['id'].to_s
       sdigest = digest_for story
       if existing_params.key?(sid)
         @param_state = 0 if existing_params[sid]['state'].eql? 0
